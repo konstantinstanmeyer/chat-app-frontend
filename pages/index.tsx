@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { io } from "socket.io-client"
+import { randomUUID } from 'crypto'
 const socket = io('http://localhost:3001');
 
 export default function Home() {
@@ -10,14 +11,24 @@ export default function Home() {
   useEffect(() => {
     socket.emit('client-ready');
 
-    socket.on('outgoing-message', (state) => {
+    socket.on('incomingMessage', (state) => {
       setIncomingValue(state);
+    });
+
+    socket.on('createRoom', ({ username }) => {
+      let randomID = randomUUID();
+      socket.emit("joinRoom" + { username, randomID } );
+      socket.emit('room-' + randomID);
+    });
+
+    socket.on('existingRoom', ({ username, messagerUsername }) => {
+
     });
   }, [])
 
   async function handleChange(name: string){
     setValue(name);
-    socket.emit('incoming-message', name);
+    socket.emit('outgoing-message', name);
   }
 
   return (
