@@ -1,17 +1,18 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { io } from "socket.io-client"
 const socket = io('http://localhost:3001');
 
 export default function Home() {
   const [value, setValue] = useState<string>("");
   const [incomingValue, setIncomingValue] = useState<string>("");
+  const room = useRef<string>();
 
   useEffect(() => {
-    socket.emit('client-ready')
+    socket.emit('client-ready');
 
     socket.on('outgoing-message', (state) => {
       setIncomingValue(state);
-    })
+    });
   }, [])
 
   async function handleChange(name: string){
