@@ -1,5 +1,5 @@
 import { Socket } from "socket.io-client"
-import { ServerToClientEvents, ClientToServerEvents, InterServerEvents, SocketData } from "../util/types/socket-io"
+import { ServerToClientEvents, ClientToServerEvents } from "../util/types/socket-io"
 
 // use generic types from socket.io documentation: https://socket.io/docs/v4/typescript/
 interface Props {
