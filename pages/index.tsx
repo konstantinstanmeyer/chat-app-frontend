@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef, SyntheticEvent } from "react"
 import { io } from "socket.io-client"
-import crypto from 'crypto'
-import Link from "next/link";
 const socket = io('http://localhost:3001');
 
 export default function Home() {
@@ -10,6 +8,7 @@ export default function Home() {
   const [checkId, setCheckId] = useState<string>("")
   const [error, setError] = useState<string | null>(null);
   const [room, setRoom] = useState<string>("");
+  const [messages, setMessages] = useState<Array<any>>([])
   const username = "clown"
 
   useEffect(() => {
@@ -31,25 +30,41 @@ export default function Home() {
 
   // const time = ((new Date()).toString()).split(' ')[4].slice(0, -3);
 
-  async function handleMessage(message: String){
+  async function sendMessage(e: SyntheticEvent){
+    e.preventDefault();
 
+    
   }
 
   async function createRoom(){
-    const randomHex = crypto.randomBytes(20).toString('hex')
+    const randomNum = Math.floor( Math.random() * 9 )
     setRoom("room1");
-    socket.emit('joinRoom', { username, room: "room1" });
+    socket.emit('joinRoom', { username, room: randomNum });
   }
 
   async function joinRoom(e: SyntheticEvent){
     e.preventDefault()
-    
-    socket.emit('joinRoom', { username, room: "room1" })
+    socket.emit('joinRoom', { username, room: room })
   }
 
   return (
     <>
-      {room ? room : 
+      {room ? 
+      <>
+        {room}
+        <div>
+          <form onSubmit={sendMessage}>
+            <input value={checkId} onChange={e => setCheckId(e.target.value)} />
+            <button type="submit">submit</button>
+          </form>
+          {messages.map((message, index) => (
+              <div key={index}>
+                <p>{message.text}</p>
+                <p>{message.user}</p>
+              </div>
+          ))}
+        </div>
+      </> : 
       <>
         <button onClick={() => createRoom()}>
           create room
