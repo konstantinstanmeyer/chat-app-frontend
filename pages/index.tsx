@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef, SyntheticEvent } from "react"
+import { Message } from "@/util/types/home";
 import { io } from "socket.io-client"
 
 export default function Home() {
   const [value, setValue] = useState<string>("");
-  const [incomingValue, setIncomingValue] = useState<string | null>(null);
-  const [checkId, setCheckId] = useState<string>("")
   const [error, setError] = useState<string | null>(null);
   const [room, setRoom] = useState<string>("");
   const [messages, setMessages] = useState<Array<any>>([])
@@ -21,6 +20,10 @@ export default function Home() {
 
     socket.on('error', (error) => {
       setError(error);
+    })
+
+    socket.on('receiveMessage', (message: Message) => {
+      setMessages([...messages, message]);
     })
   }, [socket])
 
