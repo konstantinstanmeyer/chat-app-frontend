@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, SyntheticEvent } from "react"
 import { io } from "socket.io-client"
 import crypto from 'crypto'
 import Link from "next/link";
@@ -6,8 +6,11 @@ const socket = io('http://localhost:3001');
 
 export default function Home() {
   const [value, setValue] = useState<string>("");
-  const [incomingValue, setIncomingValue] = useState<string>("");
-  const room = useRef<string>();
+  const [incomingValue, setIncomingValue] = useState<string | null>(null);
+  const [checkId, setCheckId] = useState<string>("")
+  const [error, setError] = useState<string | null>(null);
+  const [room, setRoom] = useState<string>("");
+  const username = "clown"
 
   useEffect(() => {
     socket.emit('client-ready');
@@ -16,15 +19,9 @@ export default function Home() {
       setIncomingValue(state);
     });
 
-    socket.on('createRoom', ({ username }) => {
-      let randomID = crypto.randomBytes(20).toString('hex');
-      socket.emit("createRoom", { username, randomID } );
-      socket.emit('room-' + randomID);
-    });
-
-    socket.on('existingRoom', ({ username, messagerUsername }) => {
-
-    });
+    socket.on('error', (error) => {
+      setError(error);
+    })
   }, [])
 
   async function handleChange(name: string){
@@ -38,14 +35,35 @@ export default function Home() {
 
   }
 
+  async function createRoom(){
+    const randomHex = crypto.randomBytes(20).toString('hex')
+    setRoom("room1");
+    socket.emit('joinRoom', { username, room: "room1" });
+  }
+
+  async function joinRoom(e: SyntheticEvent){
+    e.preventDefault()
+    
+    socket.emit('joinRoom', { username, room: "room1" })
+  }
+
   return (
     <>
-      <div>hello</div>
-      <input type="text" value={value} onChange={e => handleChange(e.target.value)}/>
-      <p>{incomingValue !== "" ? incomingValue : "nothing"}</p>
-      <Link href={'/' + crypto.randomBytes(20).toString('hex')}>
-        create room
-      </Link>
+      {room ? room : 
+      <>
+        <button onClick={() => createRoom()}>
+          create room
+        </button>
+        <div>
+          <p>join room</p>
+          <form onSubmit={joinRoom}>
+            <input value={checkId} onChange={e => setCheckId(e.target.value)} />
+            <button type="submit">submit</button>
+          </form>
+        </div>
+      </>
+      }
+      {error}
     </>
   )
 }
