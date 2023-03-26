@@ -22,25 +22,20 @@ export default function Home() {
     socket.on('error', (error) => {
       setError(error);
     })
-  }, [])
-
-  async function handleChange(name: string){
-    setValue(name);
-    socket.emit('outgoing-message', name);
-  }
+  }, [socket])
 
   // const time = ((new Date()).toString()).split(' ')[4].slice(0, -3);
 
   async function sendMessage(e: SyntheticEvent){
     e.preventDefault();
 
-    socket.emit('outgoingMessage', { username: username, message: value })
+    await socket.emit('sendMessage', { username: username, message: value, room: room })
   }
 
   async function createRoom(){
     const randomNum = Math.floor( Math.random() * 9 )
-    setRoom("room1");
-    socket.emit('joinRoom', { username, room: randomNum });
+    setRoom("room" + randomNum);
+    socket.emit('joinRoom', { username, room: "room" + randomNum });
   }
 
   async function joinRoom(e: SyntheticEvent){
@@ -54,10 +49,15 @@ export default function Home() {
       <>
         {room}
         <div>
+          <form onSubmit={joinRoom}>
+            <input value={room} onChange={e => setRoom(e.target.value)} />
+            <button type="submit">submit</button>
+          </form>
           <form onSubmit={sendMessage}>
             <input value={value} onChange={e => setValue(e.target.value)} />
             <button type="submit">submit</button>
           </form>
+
           {messages.map((message, index) => (
               <div key={index}>
                 <p>{message.username}</p>
@@ -73,7 +73,11 @@ export default function Home() {
         <div>
           <p>join room</p>
           <form onSubmit={joinRoom}>
-            <input value={checkId} onChange={e => setCheckId(e.target.value)} />
+            <input value={room} onChange={e => setRoom(e.target.value)} />
+            <button type="submit">submit</button>
+          </form>
+          <form onSubmit={sendMessage}>
+            <input value={value} onChange={e => setValue(e.target.value)} />
             <button type="submit">submit</button>
           </form>
         </div>
