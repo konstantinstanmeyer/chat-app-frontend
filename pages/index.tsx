@@ -6,9 +6,10 @@ export default function Home() {
   const [value, setValue] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [room, setRoom] = useState<string>("");
-  const [messages, setMessages] = useState<Array<any>>([])
+  const [roomId, setRoomId] = useState<string>("");
+  const [messages, setMessages] = useState<Array<any>>([]);
   const socket = io('http://localhost:3001');
-  const username = "clown"
+  const username = "clown";
 
   useEffect(() => {
     socket.emit('client-ready');
@@ -16,6 +17,7 @@ export default function Home() {
     socket.on('message', (state) => {
       console.log("yes")
       setMessages([...messages, state])
+      console.log(messages)
     });
 
     socket.on('error', (error) => {
@@ -23,9 +25,16 @@ export default function Home() {
     })
 
     socket.on('receiveMessage', (message: Message) => {
-      setMessages([...messages, message]);
+      console.log(message);
+      setMessages(messages => [...messages, message])
     })
-  }, [socket])
+
+    return () => {
+      socket.off('message')
+      socket.off('error');
+      socket.off('receiveMessage');
+    }
+  }, [])
 
   // const time = ((new Date()).toString()).split(' ')[4].slice(0, -3);
 
@@ -43,7 +52,10 @@ export default function Home() {
 
   async function joinRoom(e: SyntheticEvent){
     e.preventDefault()
-    socket.emit('joinRoom', { username, room: room })
+    if(roomId !== ""){
+      socket.emit('joinRoom', { username, room: roomId })
+      setRoom(roomId);
+    }
   }
 
   return (
@@ -52,15 +64,11 @@ export default function Home() {
       <>
         {room}
         <div>
-          <form onSubmit={joinRoom}>
-            <input value={room} onChange={e => setRoom(e.target.value)} />
-            <button type="submit">submit</button>
-          </form>
           <form onSubmit={sendMessage}>
+            <p>send message</p>
             <input value={value} onChange={e => setValue(e.target.value)} />
             <button type="submit">submit</button>
           </form>
-
           {messages.map((message, index) => (
               <div key={index}>
                 <p>{message.username}</p>
@@ -74,13 +82,9 @@ export default function Home() {
           create room
         </button>
         <div>
-          <p>join room</p>
           <form onSubmit={joinRoom}>
-            <input value={room} onChange={e => setRoom(e.target.value)} />
-            <button type="submit">submit</button>
-          </form>
-          <form onSubmit={sendMessage}>
-            <input value={value} onChange={e => setValue(e.target.value)} />
+            <p>join room</p>
+            <input value={roomId} onChange={e => setRoomId(e.target.value)} />
             <button type="submit">submit</button>
           </form>
         </div>
